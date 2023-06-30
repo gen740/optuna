@@ -13,6 +13,7 @@ from optuna import distributions
 from optuna import logging
 from optuna._deprecated import deprecated_func
 from optuna._typing import JSONSerializable
+from optuna.artifacts._upload import ArtifactMeta
 from optuna.distributions import _convert_old_distribution_to_new_distribution
 from optuna.distributions import BaseDistribution
 from optuna.distributions import CategoricalChoiceType
