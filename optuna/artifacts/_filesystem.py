@@ -31,7 +31,9 @@ class FileSystemArtifactStore:
                return ...
     """
 
-    def __init__(self, base_path: str) -> None:
+    def __init__(self, base_path: str, mkdir=False) -> None:
+        if mkdir:
+            os.makedirs(base_path, exist_ok=True)
         self._base_path = base_path
 
     def open(self, artifact_id: str) -> BinaryIO:
