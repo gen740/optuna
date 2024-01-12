@@ -95,7 +95,6 @@ jobs:
         else
           ignore_option=""
         fi
-
         pytest tests -v --durations=0 -m "$target" $ignore_option
       env:
         SQLALCHEMY_WARN_20: 1
