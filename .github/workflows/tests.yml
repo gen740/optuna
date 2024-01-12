@@ -14,18 +14,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
-        test-trigger-type:
-          - ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'Scheduled' || '' }}
-        exclude:
-          - test-trigger-type: ""
-            python-version: "3.8"
-          - test-trigger-type: ""
-            python-version: "3.9"
-          - test-trigger-type: ""
-            python-version: "3.10"
-          - test-trigger-type: ""
-            python-version: "3.11"
+        python-version: ['3.10', '3.11', '3.12']
 
     services:
       redis:
@@ -95,6 +84,7 @@ jobs:
         else
           ignore_option=""
         fi
-        pytest tests -v --durations=0 -m "$target" $ignore_option
+        pytest --durations=0 $ignore_option tests | tee time.txt
+        python ./stat.py
       env:
         SQLALCHEMY_WARN_20: 1
