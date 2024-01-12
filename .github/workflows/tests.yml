@@ -4,10 +4,6 @@ on:
   push:
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/master' && github.run_number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   tests:
     runs-on: ubuntu-latest
@@ -58,6 +54,7 @@ jobs:
         optuna --version
 
         pip install --progress-bar off .[test]
+        pip install --progress-bar off .[integration]
         pip install --progress-bar off .[optional] --extra-index-url https://download.pytorch.org/whl/cpu
 
     - name: Output installed packages
