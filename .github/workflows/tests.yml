@@ -2,11 +2,6 @@ name: Tests
 
 on:
   push:
-    branches:
-      - test_ci
-  pull_request: {}
-  schedule:
-    - cron: '0 23 * * SUN-THU'
   workflow_dispatch:
 
 concurrency:
