@@ -3,7 +3,7 @@ name: Tests
 on:
   push:
     branches:
-      - master
+      - test_ci
   pull_request: {}
   schedule:
     - cron: '0 23 * * SUN-THU'
@@ -102,6 +102,6 @@ jobs:
           ignore_option=""
         fi
 
-        pytest tests -m "$target" $ignore_option
+        pytest tests -v --durations=0 -m "$target" $ignore_option
       env:
         SQLALCHEMY_WARN_20: 1
