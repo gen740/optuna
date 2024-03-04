@@ -3,35 +3,19 @@ name: Tests
 on:
   push:
     branches:
-      - master
+      - ci_time
   pull_request: {}
   schedule:
     - cron: '0 23 * * SUN-THU'
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/master' && github.run_number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   tests:
-    if: (github.event_name == 'schedule' && github.repository == 'optuna/optuna') || (github.event_name != 'schedule')
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
         python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
-        test-trigger-type:
-          - ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'Scheduled' || '' }}
-        exclude:
-          - test-trigger-type: ""
-            python-version: "3.8"
-          - test-trigger-type: ""
-            python-version: "3.9"
-          - test-trigger-type: ""
-            python-version: "3.10"
-          - test-trigger-type: ""
-            python-version: "3.11"
 
     services:
       redis:
@@ -87,13 +71,6 @@ jobs:
 
     - name: Tests
       run: |
-        if [ "${{ github.event_name }}" = "schedule" ] || \
-           [ "${{ github.event_name }}" = "workflow_dispatch" ] ; then
-          target="not integration"
-        else
-          target="not integration and not slow"
-        fi
-
         if [ "${{ matrix.python-version }}" = "3.12" ] ; then
           # TODO(not522): Remove ignores when BoTorch/Torch supports Python 3.12
           ignore_option="--ignore tests/terminator_tests/ \
@@ -103,6 +80,6 @@ jobs:
           ignore_option=""
         fi
 
-        pytest tests -m "$target" $ignore_option
+        pytest tests $ignore_option
       env:
         SQLALCHEMY_WARN_20: 1
