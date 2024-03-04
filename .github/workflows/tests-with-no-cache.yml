@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - ci_time
-  pull_request: {}
-  schedule:
-    - cron: '0 23 * * SUN-THU'
   workflow_dispatch:
 
 jobs:
