@@ -1,0 +1,74 @@
+name: Tests_with_no_cache
+
+on:
+  push:
+    branches:
+      - ci_time
+  pull_request: {}
+  schedule:
+    - cron: '0 23 * * SUN-THU'
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
+
+    services:
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Python${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Setup pip
+      run: |
+        python -m pip install --upgrade pip
+        pip install --progress-bar off -U setuptools
+
+    - name: Install
+      run: |
+        # Install minimal dependencies and confirm that `import optuna` is successful.
+        pip install --progress-bar off .
+        python -c 'import optuna'
+        optuna --version
+
+        pip install --progress-bar off .[test]
+        pip install --progress-bar off .[optional] --extra-index-url https://download.pytorch.org/whl/cpu
+
+    - name: Output installed packages
+      run: |
+        pip freeze --all
+    - name: Output dependency tree
+      run: |
+        pip install pipdeptree
+        pipdeptree
+
+    - name: Tests
+      run: |
+        if [ "${{ matrix.python-version }}" = "3.12" ] ; then
+          # TODO(not522): Remove ignores when BoTorch/Torch supports Python 3.12
+          ignore_option="--ignore tests/terminator_tests/ \
+          --ignore tests/terminator_tests/improvement_tests/ \
+          --ignore tests/visualization_tests/test_terminator_improvement.py"
+        else
+          ignore_option=""
+        fi
+
+        pytest tests $ignore_option
+      env:
+        SQLALCHEMY_WARN_20: 1
