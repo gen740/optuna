@@ -62,10 +62,6 @@ extensions = [
     "sphinx_gallery.gen_gallery"
 ]
 
-suppress_warnings = [
-    'autosummary.import_cycle',
-]
-
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
 

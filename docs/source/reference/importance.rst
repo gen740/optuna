@@ -18,7 +18,7 @@ The :mod:`~optuna.importance` module provides functionality for evaluating hyper
    :toctree: generated/
    :nosignatures:
 
-   optuna.importance.get_param_importances
-   optuna.importance.FanovaImportanceEvaluator
-   optuna.importance.MeanDecreaseImpurityImportanceEvaluator
-   optuna.importance.PedAnovaImportanceEvaluator
+   get_param_importances
+   FanovaImportanceEvaluator
+   MeanDecreaseImpurityImportanceEvaluator
+   PedAnovaImportanceEvaluator

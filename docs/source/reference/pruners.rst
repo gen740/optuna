@@ -18,12 +18,12 @@ The :mod:`~optuna.pruners` module defines a :class:`~optuna.pruners.BasePruner` 
    :toctree: generated/
    :nosignatures:
 
-   optuna.pruners.BasePruner
-   optuna.pruners.MedianPruner
-   optuna.pruners.NopPruner
-   optuna.pruners.PatientPruner
-   optuna.pruners.PercentilePruner
-   optuna.pruners.SuccessiveHalvingPruner
-   optuna.pruners.HyperbandPruner
-   optuna.pruners.ThresholdPruner
-   optuna.pruners.WilcoxonPruner
+   BasePruner
+   MedianPruner
+   NopPruner
+   PatientPruner
+   PercentilePruner
+   SuccessiveHalvingPruner
+   HyperbandPruner
+   ThresholdPruner
+   WilcoxonPruner
