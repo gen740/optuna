@@ -3,35 +3,35 @@ name: Tests
 on:
   push:
     branches:
-      - master
+      - update-ci-python-to-3.13
   pull_request: {}
-  schedule:
-    - cron: '0 23 * * SUN-THU'
+  # schedule:
+  #   - cron: '0 23 * * SUN-THU'
   workflow_dispatch:
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/master' && github.run_number || github.ref }}
-  cancel-in-progress: true
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/master' && github.run_number || github.ref }}
+#   cancel-in-progress: true
 
 jobs:
   tests:
-    if: (github.event_name == 'schedule' && github.repository == 'optuna/optuna') || (github.event_name != 'schedule')
+    # if: (github.event_name == 'schedule' && github.repository == 'optuna/optuna') || (github.event_name != 'schedule')
     runs-on: ubuntu-latest
 
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10', '3.11', '3.12']
-        test-trigger-type:
-          - ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'Scheduled' || '' }}
-        exclude:
-          - test-trigger-type: ""
-            python-version: "3.8"
-          - test-trigger-type: ""
-            python-version: "3.9"
-          - test-trigger-type: ""
-            python-version: "3.10"
-          - test-trigger-type: ""
-            python-version: "3.11"
+        python-version: ['3.13.0-rc.2']
+        # test-trigger-type:
+        #   - ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'Scheduled' || '' }}
+        # exclude:
+        #   - test-trigger-type: ""
+        #     python-version: "3.8"
+        #   - test-trigger-type: ""
+        #     python-version: "3.9"
+        #   - test-trigger-type: ""
+        #     python-version: "3.10"
+        #   - test-trigger-type: ""
+        #     python-version: "3.11"
 
     services:
       redis:
