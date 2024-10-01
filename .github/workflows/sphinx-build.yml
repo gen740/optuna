@@ -3,12 +3,12 @@ name: Sphinx
 on:
   push:
     branches:
-      - master
+      - update-ci-python311
   pull_request: {}
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/master' && github.run_number || github.ref }}
-  cancel-in-progress: true
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.ref == 'refs/heads/master' && github.run_number || github.ref }}
+#   cancel-in-progress: true
 
 jobs:
   documentation:
@@ -21,7 +21,7 @@ jobs:
 
     - uses: actions/setup-python@v5
       with:
-        python-version: 3.8
+        python-version: 3.11
 
     # note (crcrpar): We've not updated tutorial frequently enough so far thus
     # it'd be okay to discard cache by any small changes including typo fix under tutorial directory.
@@ -33,7 +33,7 @@ jobs:
         path: |
           tutorial/MNIST
           docs/source/tutorial
-        key: py3.8-${{ env.cache-name }}-${{ hashFiles('tutorial/**/*') }}
+        key: py3.11-${{ env.cache-name }}-${{ hashFiles('tutorial/**/*') }}
 
     - name: Install Dependencies
       run: |
@@ -77,7 +77,7 @@ jobs:
 
     - uses: actions/setup-python@v5
       with:
-        python-version: 3.8
+        python-version: 3.11
 
     - name: Sphinx Gallery Cache
       uses: actions/cache@v3
@@ -87,7 +87,7 @@ jobs:
         path: |
           tutorial/MNIST
           docs/source/tutorial
-        key: py3.8-${{ env.cache-name }}-${{ hashFiles('tutorial/**/*') }}
+        key: py3.11-${{ env.cache-name }}-${{ hashFiles('tutorial/**/*') }}
 
     - name: Install Dependencies
       run: |
