@@ -5,7 +5,7 @@ import pytest
 
 # TODO(gen740): Remove the following `if` block after torch supports Python 3.13
 import sys
-if sys.version_info <= (3, 12):
+if sys.version_info < (3, 13):
     import torch
     from optuna._gp.gp import _fit_kernel_params
     from optuna._gp.gp import KernelParamsTensor

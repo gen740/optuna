@@ -3,7 +3,7 @@ import pytest
 
 # TODO(gen740): Remove the following `if` block after torch supports Python 3.13
 import sys
-if sys.version_info <= (3, 12):
+if sys.version_info < (3, 13):
     from optuna.distributions import FloatDistribution
     from optuna.study import StudyDirection
     from optuna.terminator import BestValueStagnationEvaluator

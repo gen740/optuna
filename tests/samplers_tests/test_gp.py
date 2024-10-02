@@ -8,7 +8,7 @@ import optuna
 
 # TODO(gen740): Remove the following `if` block after torch supports Python 3.13
 import sys
-if sys.version_info <= (3, 12):
+if sys.version_info < (3, 13):
     import torch
     import optuna._gp.acqf as acqf
     import optuna._gp.optim_mixed as optim_mixed

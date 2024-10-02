@@ -5,7 +5,7 @@ import pytest
 
 # TODO(gen740): Remove the following `if` block after torch supports Python 3.13
 import sys
-if sys.version_info <= (3, 12):
+if sys.version_info < (3, 13):
     import torch
     from optuna._gp.acqf import AcquisitionFunctionType
     from optuna._gp.acqf import create_acqf_params
