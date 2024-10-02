@@ -2,17 +2,16 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
-from typing import Any
-
-import sys
 
 # TODO(gen740): Remove the following `if` block after torch supports Python 3.13
+import sys
 if sys.version_info <= (3, 12):
     import torch
     from optuna._gp.gp import _fit_kernel_params
     from optuna._gp.gp import KernelParamsTensor
     import optuna._gp.prior as prior
 else:
+    from typing import Any
     torch: Any = None
     _fit_kernel_params: Any = None
     KernelParamsTensor: Any = None

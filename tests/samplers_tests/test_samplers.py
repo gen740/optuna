@@ -52,8 +52,8 @@ parametrize_sampler = pytest.mark.parametrize(
         optuna.samplers.NSGAIISampler,
         optuna.samplers.NSGAIIISampler,
         optuna.samplers.QMCSampler,
-        lambda: get_gp_sampler(n_startup_trials=0),
-        lambda: get_gp_sampler(n_startup_trials=0, deterministic_objective=True),
+        pytest.param(lambda: get_gp_sampler(n_startup_trials=0), marks=pytest.mark.use_torch),
+        pytest.param(lambda: get_gp_sampler(n_startup_trials=0, deterministic_objective=True), marks=pytest.mark.use_torch),
     ],
 )
 parametrize_relative_sampler = pytest.mark.parametrize(
@@ -62,8 +62,8 @@ parametrize_relative_sampler = pytest.mark.parametrize(
         lambda: optuna.samplers.TPESampler(n_startup_trials=0, multivariate=True),
         lambda: optuna.samplers.CmaEsSampler(n_startup_trials=0),
         lambda: optuna.samplers.CmaEsSampler(n_startup_trials=0, use_separable_cma=True),
-        lambda: get_gp_sampler(n_startup_trials=0),
-        lambda: get_gp_sampler(n_startup_trials=0, deterministic_objective=True),
+        pytest.param(lambda: get_gp_sampler(n_startup_trials=0), marks=pytest.mark.use_torch),
+        pytest.param(lambda: get_gp_sampler(n_startup_trials=0, deterministic_objective=True), marks=pytest.mark.use_torch),
     ],
 )
 parametrize_multi_objective_sampler = pytest.mark.parametrize(
@@ -93,9 +93,14 @@ sampler_class_with_seed: dict[str, Callable[[int], BaseSampler]] = {
 }
 param_sampler_with_seed = []
 param_sampler_name_with_seed = []
+
 for sampler_name, sampler_class in sampler_class_with_seed.items():
-    param_sampler_with_seed.append(pytest.param(sampler_class, id=sampler_name))
-    param_sampler_name_with_seed.append(pytest.param(sampler_name))
+    if sampler_name == "GPSampler":
+        param_sampler_with_seed.append(pytest.param(sampler_class, id=sampler_name, marks=pytest.mark.use_torch))
+        param_sampler_name_with_seed.append(pytest.param(sampler_name, marks=pytest.mark.use_torch))
+    else:
+        param_sampler_with_seed.append(pytest.param(sampler_class, id=sampler_name))
+        param_sampler_name_with_seed.append(pytest.param(sampler_name))
 parametrize_sampler_with_seed = pytest.mark.parametrize("sampler_class", param_sampler_with_seed)
 parametrize_sampler_name_with_seed = pytest.mark.parametrize(
     "sampler_name", param_sampler_name_with_seed
@@ -120,7 +125,7 @@ parametrize_sampler_name_with_seed = pytest.mark.parametrize(
         ),
         (lambda: optuna.samplers.GridSampler(search_space={"x": [0]}), True, False),
         (lambda: optuna.samplers.QMCSampler(), False, True),
-        (lambda: get_gp_sampler(n_startup_trials=0), True, True),
+        pytest.param(lambda: get_gp_sampler(n_startup_trials=0), True, True, marks=pytest.mark.use_torch),
     ],
 )
 def test_sampler_reseed_rng(

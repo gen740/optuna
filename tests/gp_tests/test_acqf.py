@@ -1,11 +1,10 @@
 from __future__ import annotations
-from typing import Any
 
 import numpy as np
 import pytest
-import sys
 
 # TODO(gen740): Remove the following `if` block after torch supports Python 3.13
+import sys
 if sys.version_info <= (3, 12):
     import torch
     from optuna._gp.acqf import AcquisitionFunctionType
@@ -17,6 +16,7 @@ if sys.version_info <= (3, 12):
 else:
     torch: Any = None
     from enum import IntEnum
+    from typing import Any
     class AcquisitionFunctionType(IntEnum):
         LOG_EI = 0
         UCB = 1
