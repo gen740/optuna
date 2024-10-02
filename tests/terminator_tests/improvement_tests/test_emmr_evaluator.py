@@ -13,6 +13,7 @@ from optuna.terminator.improvement.emmr import MARGIN_FOR_NUMARICAL_STABILITY
 from optuna.trial import create_trial
 from optuna.trial import FrozenTrial
 
+pytestmark = pytest.mark.use_torch
 
 def test_emmr_evaluate() -> None:
     evaluator = EMMREvaluator(min_n_trials=3)

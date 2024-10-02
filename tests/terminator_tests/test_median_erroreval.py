@@ -10,6 +10,7 @@ from optuna.terminator import MedianErrorEvaluator
 from optuna.trial import create_trial
 from optuna.trial import FrozenTrial
 
+pytestmark = pytest.mark.use_torch
 
 def test_validation_ratio_to_initial_median_evaluator() -> None:
     with pytest.raises(ValueError):
