@@ -3,7 +3,7 @@ name: Checks
 on:
   push:
     branches:
-      - master
+      - update-ci-python-to-3.13
   pull_request: {}
   schedule:
     - cron: '0 23 * * SUN-THU'
@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   checks:
-    if: (github.event_name == 'schedule' && github.repository == 'optuna/optuna') || (github.event_name != 'schedule')
+    # if: (github.event_name == 'schedule' && github.repository == 'optuna/optuna') || (github.event_name != 'schedule')
     runs-on: ubuntu-latest
 
     steps:
