@@ -1,23 +1,28 @@
 from __future__ import annotations
 
+# TODO(gen740): Remove the following `if` block after torch supports Python 3.13
+import sys
+
 import numpy as np
 import pytest
 
-# TODO(gen740): Remove the following `if` block after torch supports Python 3.13
-import sys
+
 if sys.version_info < (3, 13):
     import torch
+
     from optuna._gp.gp import _fit_kernel_params
     from optuna._gp.gp import KernelParamsTensor
     import optuna._gp.prior as prior
 else:
     from typing import Any
+
     torch: Any = None
     _fit_kernel_params: Any = None
     KernelParamsTensor: Any = None
     prior: Any = None
 
 pytestmark = pytest.mark.use_torch
+
 
 @pytest.mark.parametrize(
     "X, Y, is_categorical",

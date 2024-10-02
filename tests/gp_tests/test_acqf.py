@@ -1,12 +1,15 @@
 from __future__ import annotations
 
+# TODO(gen740): Remove the following `if` block after torch supports Python 3.13
+import sys
+
 import numpy as np
 import pytest
 
-# TODO(gen740): Remove the following `if` block after torch supports Python 3.13
-import sys
+
 if sys.version_info < (3, 13):
     import torch
+
     from optuna._gp.acqf import AcquisitionFunctionType
     from optuna._gp.acqf import create_acqf_params
     from optuna._gp.acqf import eval_acqf
@@ -17,10 +20,12 @@ else:
     torch: Any = None
     from enum import IntEnum
     from typing import Any
+
     class AcquisitionFunctionType(IntEnum):
         LOG_EI = 0
         UCB = 1
         LCB = 2
+
     create_acqf_params: Any = None
     eval_acqf: Any = None
     KernelParamsTensor: Any = None
@@ -29,6 +34,7 @@ else:
 
 
 pytestmark = pytest.mark.use_torch
+
 
 @pytest.mark.parametrize(
     "acqf_type, beta",

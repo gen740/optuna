@@ -1,21 +1,25 @@
 from __future__ import annotations
 
+# TODO(gen740): Remove the following `if` block after torch supports Python 3.13
+import sys
+
 from _pytest.logging import LogCaptureFixture
 import numpy as np
 import pytest
 
 import optuna
 
-# TODO(gen740): Remove the following `if` block after torch supports Python 3.13
-import sys
+
 if sys.version_info < (3, 13):
     import torch
+
     import optuna._gp.acqf as acqf
     import optuna._gp.optim_mixed as optim_mixed
     import optuna._gp.prior as prior
     import optuna._gp.search_space as gp_search_space
 else:
     from typing import Any
+
     torch: Any = None
     acqf: Any = None
     optim_mixed: Any = None
@@ -23,6 +27,7 @@ else:
     gp_search_space: Any = None
 
 pytestmark = pytest.mark.use_torch
+
 
 def test_after_convergence(caplog: LogCaptureFixture) -> None:
     # A large `optimal_trials` causes the instability in the kernel inversion, leading to

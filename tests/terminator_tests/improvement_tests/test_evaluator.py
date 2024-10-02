@@ -1,8 +1,9 @@
+# TODO(gen740): Remove the following `if` block after torch supports Python 3.13
+import sys
+
 import pytest
 
 
-# TODO(gen740): Remove the following `if` block after torch supports Python 3.13
-import sys
 if sys.version_info < (3, 13):
     from optuna.distributions import FloatDistribution
     from optuna.study import StudyDirection
@@ -12,10 +13,11 @@ if sys.version_info < (3, 13):
     from optuna.trial import create_trial
 else:
     from typing import Any
+
     FloatDistribution: Any = None
     StudyDirection: Any = None
-    BestValueStagnationEvaluator: Any = lambda: None # NOQA
-    RegretBoundEvaluator: Any = lambda: None # NOQA
+    BestValueStagnationEvaluator: Any = lambda: None  # NOQA
+    RegretBoundEvaluator: Any = lambda: None  # NOQA
     BaseImprovementEvaluator: Any = None
     create_trial: Any = None
 
@@ -23,6 +25,7 @@ pytestmark = pytest.mark.use_torch
 
 # TODO(g-votte): test the following edge cases
 # TODO(g-votte): - the user specifies non-default top_trials_ratio or min_n_trials
+
 
 def test_regret_bound_evaluate() -> None:
     trials = [

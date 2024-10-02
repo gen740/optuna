@@ -10,7 +10,9 @@ from optuna.terminator import Terminator
 from optuna.terminator.improvement.evaluator import BestValueStagnationEvaluator
 from optuna.trial import FrozenTrial
 
+
 pytestmark = pytest.mark.use_torch
+
 
 class _StaticImprovementEvaluator(BaseImprovementEvaluator):
     def __init__(self, constant: float) -> None:
