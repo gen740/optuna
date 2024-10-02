@@ -1,16 +1,34 @@
 from __future__ import annotations
+from typing import Any
 
 import numpy as np
 import pytest
-import torch
+import sys
 
-from optuna._gp.acqf import AcquisitionFunctionType
-from optuna._gp.acqf import create_acqf_params
-from optuna._gp.acqf import eval_acqf
-from optuna._gp.gp import KernelParamsTensor
-from optuna._gp.search_space import ScaleType
-from optuna._gp.search_space import SearchSpace
+# TODO(gen740): Remove the following `if` block after torch supports Python 3.13
+if sys.version_info <= (3, 12):
+    import torch
+    from optuna._gp.acqf import AcquisitionFunctionType
+    from optuna._gp.acqf import create_acqf_params
+    from optuna._gp.acqf import eval_acqf
+    from optuna._gp.gp import KernelParamsTensor
+    from optuna._gp.search_space import ScaleType
+    from optuna._gp.search_space import SearchSpace
+else:
+    torch: Any = None
+    from enum import IntEnum
+    class AcquisitionFunctionType(IntEnum):
+        LOG_EI = 0
+        UCB = 1
+        LCB = 2
+    create_acqf_params: Any = None
+    eval_acqf: Any = None
+    KernelParamsTensor: Any = None
+    ScaleType: Any = None
+    SearchSpace: Any = None
 
+
+pytestmark = pytest.mark.use_torch
 
 @pytest.mark.parametrize(
     "acqf_type, beta",
