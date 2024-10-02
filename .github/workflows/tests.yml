@@ -20,7 +20,7 @@ jobs:
 
     strategy:
       matrix:
-        python-version: ['3.13.0-rc.2']
+        python-version: ['3.12', '3.13.0-rc.2']
         # test-trigger-type:
         #   - ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'Scheduled' || '' }}
         # exclude:
@@ -32,6 +32,8 @@ jobs:
         #     python-version: "3.10"
         #   - test-trigger-type: ""
         #     python-version: "3.11"
+        #   - test-trigger-type: ""
+        #     python-version: "3.13.0-rc.2"
 
     services:
       redis:
@@ -94,6 +96,14 @@ jobs:
           target="not slow"
         fi
 
+        # TODO(gen740): Remove this after torch supports python3.13
+        if [ "${{ matrix.python-version }}" = "3.13.0-rc.2" ] ; then
+          if [ "$target" = "" ] ; then
+            target="not use_torch"
+          else
+            target+=" and not use_torch"
+          fi
+        fi
         pytest tests -m "$target"
       env:
         SQLALCHEMY_WARN_20: 1
