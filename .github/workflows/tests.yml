@@ -3,7 +3,7 @@ name: Tests
 on:
   push:
     branches:
-      - master
+      - update-test-python-version-to-3.13-forked
   pull_request: {}
   schedule:
     - cron: '0 23 * * SUN-THU'
