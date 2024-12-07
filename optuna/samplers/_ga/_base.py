@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import abc
 import optuna
 from optuna.samplers._base import BaseSampler
 from optuna.trial._frozen import FrozenTrial
@@ -7,7 +8,7 @@ from optuna.trial._state import TrialState
 
 
 # TODO(gen740): Add the experimental decorator?
-class BaseGASampler(BaseSampler):
+class BaseGASampler(BaseSampler, abc.ABC):
     """Base class for Genetic Algorithm (GA) samplers.
 
     Genetic Algorithm samplers generate new trials by mimicking natural selection, using
@@ -54,6 +55,7 @@ class BaseGASampler(BaseSampler):
     def population_size(self, value: int):
         self._population_size = value
 
+    @abc.abstractmethod
     def select_parent(self, study: optuna.Study, generation: int) -> list[FrozenTrial]:
         """Select parent trials from the population for the given generation.
 
@@ -94,12 +96,14 @@ class BaseGASampler(BaseSampler):
         Returns:
             Generation number of the given trial.
         """
-
         generation = trial.system_attrs.get(self._get_generation_key(), None)
         if generation is not None:
             return generation
 
-        trials = study._get_trials(deepcopy=False, states=[TrialState.COMPLETE], use_cache=True)
+        trials = study._get_trials(
+            deepcopy=False, states=[TrialState.COMPLETE], use_cache=True
+        )
+
         max_generation, max_generation_number = 0, 0
 
         for t in reversed(trials):
@@ -142,7 +146,9 @@ class BaseGASampler(BaseSampler):
             if trial.system_attrs.get(self._get_generation_key(), None) == generation
         ]
 
-    def get_parent_population(self, study: optuna.Study, generation: int) -> list[FrozenTrial]:
+    def get_parent_population(
+        self, study: optuna.Study, generation: int
+    ) -> list[FrozenTrial]:
         """Get the parent population of the given generation.
 
         This method caches the parent population in the study's system attributes.
@@ -165,7 +171,10 @@ class BaseGASampler(BaseSampler):
         )
 
         if cached_parent_population is not None:
-            return [study._storage.get_trial(trial_id) for trial_id in cached_parent_population]
+            return [
+                study._storage.get_trial(trial_id)
+                for trial_id in cached_parent_population
+            ]
         else:
             parent_population = self.select_parent(study, generation)
             study._storage.set_study_system_attr(
