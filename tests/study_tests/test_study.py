@@ -1710,14 +1710,14 @@ def test_pop_waiting_trial_thread_safe(storage_mode: str) -> None:
     if storage_mode in ("sqlite", "cached_sqlite", "grpc_rdb"):
         pytest.skip("study._pop_waiting_trial is not thread-safe on SQLite3")
 
-    num_enqueued = 10
+    num_enqueued = 50
     with StorageSupplier(storage_mode) as storage:
         study = create_study(storage=storage)
         for i in range(num_enqueued):
             study.enqueue_trial({"i": i})
 
         trial_id_set = set()
-        with ThreadPoolExecutor(10) as pool:
+        with ThreadPoolExecutor(50) as pool:
             futures = []
             for i in range(num_enqueued):
                 future = pool.submit(study._pop_waiting_trial_id)
