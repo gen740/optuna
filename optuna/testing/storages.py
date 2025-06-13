@@ -66,7 +66,7 @@ class StorageSupplier:
                 raise ValueError("InMemoryStorage does not accept any arguments!")
             return optuna.storages.InMemoryStorage()
         elif "sqlite" in self.storage_specifier:
-            self.tempfile = NamedTemporaryFilePool().tempfile()
+            self.tempfile = NamedTemporaryFilePool(prefix="sqlite").tempfile()
             url = "sqlite:///{}".format(self.tempfile.name)
             rdb_storage = optuna.storages.RDBStorage(
                 url,
@@ -87,19 +87,23 @@ class StorageSupplier:
             )
             return optuna.storages.JournalStorage(journal_redis_storage)
         elif self.storage_specifier == "grpc_journal_file":
-            self.tempfile = self.extra_args.get("file", NamedTemporaryFilePool().tempfile())
+            self.tempfile = self.extra_args.get(
+                "file", NamedTemporaryFilePool(prefix="grpc_journal_file").tempfile()
+            )
             assert self.tempfile is not None
             storage = optuna.storages.JournalStorage(
                 optuna.storages.journal.JournalFileBackend(self.tempfile.name)
             )
             return self._create_proxy(storage)
         elif "journal" in self.storage_specifier:
-            self.tempfile = self.extra_args.get("file", NamedTemporaryFilePool().tempfile())
+            self.tempfile = self.extra_args.get(
+                "file", NamedTemporaryFilePool(prefix="journal").tempfile()
+            )
             assert self.tempfile is not None
             file_storage = JournalFileBackend(self.tempfile.name)
             return optuna.storages.JournalStorage(file_storage)
         elif self.storage_specifier == "grpc_rdb":
-            self.tempfile = NamedTemporaryFilePool().tempfile()
+            self.tempfile = NamedTemporaryFilePool(prefix="grpc_rdb").tempfile()
             url = "sqlite:///{}".format(self.tempfile.name)
             return self._create_proxy(optuna.storages.RDBStorage(url))
         elif self.storage_specifier == "grpc_proxy":
@@ -118,7 +122,10 @@ class StorageSupplier:
         return self.proxy
 
     def __exit__(
-        self, exc_type: type[BaseException], exc_val: BaseException, exc_tb: TracebackType
+        self,
+        exc_type: type[BaseException],
+        exc_val: BaseException,
+        exc_tb: TracebackType,
     ) -> None:
         if self.tempfile:
             self.tempfile.close()
@@ -135,12 +142,16 @@ class StorageSupplier:
             self.thread = None
 
 
+FIND_PORT_LOCK = threading.Lock()
+
+
 def _find_free_port() -> int:
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    for port in range(13000, 13100):
-        try:
-            sock.bind(("localhost", port))
-            return port
-        except OSError:
-            continue
-    assert False, "must not reach here"
+    with FIND_PORT_LOCK:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        for port in range(13000, 13100):
+            try:
+                sock.bind(("localhost", port))
+                return port
+            except OSError:
+                continue
+        assert False, "must not reach here"
