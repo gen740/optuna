@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import fcntl
 import socket
 import threading
 from types import TracebackType
@@ -42,6 +43,8 @@ STORAGE_MODES_HEARTBEAT = [
 
 SQLITE3_TIMEOUT = 300
 
+FIND_FREE_PORT_LOCK_FILE = "/tmp/optuna_find_free_port.lock"
+
 
 class StorageSupplier:
     def __init__(self, storage_specifier: str, **kwargs: Any) -> None:
@@ -66,7 +69,7 @@ class StorageSupplier:
                 raise ValueError("InMemoryStorage does not accept any arguments!")
             return optuna.storages.InMemoryStorage()
         elif "sqlite" in self.storage_specifier:
-            self.tempfile = NamedTemporaryFilePool(prefix="sqlite").tempfile()
+            self.tempfile = NamedTemporaryFilePool().tempfile()
             url = "sqlite:///{}".format(self.tempfile.name)
             rdb_storage = optuna.storages.RDBStorage(
                 url,
@@ -87,23 +90,19 @@ class StorageSupplier:
             )
             return optuna.storages.JournalStorage(journal_redis_storage)
         elif self.storage_specifier == "grpc_journal_file":
-            self.tempfile = self.extra_args.get(
-                "file", NamedTemporaryFilePool(prefix="grpc_journal_file").tempfile()
-            )
+            self.tempfile = self.extra_args.get("file", NamedTemporaryFilePool().tempfile())
             assert self.tempfile is not None
             storage = optuna.storages.JournalStorage(
                 optuna.storages.journal.JournalFileBackend(self.tempfile.name)
             )
             return self._create_proxy(storage)
         elif "journal" in self.storage_specifier:
-            self.tempfile = self.extra_args.get(
-                "file", NamedTemporaryFilePool(prefix="journal").tempfile()
-            )
+            self.tempfile = self.extra_args.get("file", NamedTemporaryFilePool().tempfile())
             assert self.tempfile is not None
             file_storage = JournalFileBackend(self.tempfile.name)
             return optuna.storages.JournalStorage(file_storage)
         elif self.storage_specifier == "grpc_rdb":
-            self.tempfile = NamedTemporaryFilePool(prefix="grpc_rdb").tempfile()
+            self.tempfile = NamedTemporaryFilePool().tempfile()
             url = "sqlite:///{}".format(self.tempfile.name)
             return self._create_proxy(optuna.storages.RDBStorage(url))
         elif self.storage_specifier == "grpc_proxy":
@@ -113,13 +112,18 @@ class StorageSupplier:
             assert False
 
     def _create_proxy(self, storage: BaseStorage) -> GrpcStorageProxy:
-        port = _find_free_port()
-        self.server = optuna.storages._grpc.server.make_server(storage, "localhost", port)
-        self.thread = threading.Thread(target=self.server.start)
-        self.thread.start()
-        self.proxy = GrpcStorageProxy(host="localhost", port=port)
-        self.proxy.wait_server_ready(timeout=60)
-        return self.proxy
+        with open(FIND_FREE_PORT_LOCK_FILE, "w") as lockfile:
+            fcntl.flock(lockfile, fcntl.LOCK_EX)
+            try:
+                port = _find_free_port()
+                self.server = optuna.storages._grpc.server.make_server(storage, "localhost", port)
+                self.thread = threading.Thread(target=self.server.start)
+                self.thread.start()
+                self.proxy = GrpcStorageProxy(host="localhost", port=port)
+                self.proxy.wait_server_ready(timeout=60)
+                return self.proxy
+            finally:
+                fcntl.flock(lockfile, fcntl.LOCK_UN)
 
     def __exit__(
         self,
@@ -142,16 +146,12 @@ class StorageSupplier:
             self.thread = None
 
 
-FIND_PORT_LOCK = threading.Lock()
-
-
 def _find_free_port() -> int:
-    with FIND_PORT_LOCK:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        for port in range(13000, 13100):
-            try:
-                sock.bind(("localhost", port))
-                return port
-            except OSError:
-                continue
-        assert False, "must not reach here"
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    for port in range(13000, 13100):
+        try:
+            sock.bind(("localhost", port))
+            return port
+        except OSError:
+            continue
+    assert False, "must not reach here"

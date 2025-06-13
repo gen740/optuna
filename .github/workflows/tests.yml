@@ -101,6 +101,7 @@ jobs:
           target="not slow"
         fi
 
-        pytest tests -m "$target" -n 8
+        # pytest tests -m "not serial" -m "$target" -n 4
+        pytest tests -m "serial and $target" -n 1
       env:
         SQLALCHEMY_WARN_20: 1

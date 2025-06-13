@@ -7,7 +7,6 @@ import atexit
 import gc
 import os
 import tempfile
-import threading
 from types import TracebackType
 from typing import Any
 from typing import IO
@@ -15,7 +14,6 @@ from typing import IO
 
 class NamedTemporaryFilePool:
     tempfile_pool: list[IO[Any]] = []
-    lock = threading.Lock()
 
     def __new__(cls, **kwargs: Any) -> "NamedTemporaryFilePool":
         if not hasattr(cls, "_instance"):
@@ -28,15 +26,13 @@ class NamedTemporaryFilePool:
 
     def tempfile(self) -> IO[Any]:
         self._tempfile = tempfile.NamedTemporaryFile(delete=False, **self.kwargs)
-        with self.lock:
-            self.tempfile_pool.append(self._tempfile)
+        self.tempfile_pool.append(self._tempfile)
         return self._tempfile
 
     def cleanup(self) -> None:
-        with self.lock:
-            gc.collect()
-            for i in self.tempfile_pool:
-                os.unlink(i.name)
+        gc.collect()
+        for i in self.tempfile_pool:
+            os.unlink(i.name)
 
     def __enter__(self) -> IO[Any]:
         return self.tempfile()
