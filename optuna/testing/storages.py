@@ -29,10 +29,10 @@ STORAGE_MODES: list[Any] = [
     "inmemory",
     "sqlite",
     "cached_sqlite",
-    "journal",
-    "journal_redis",
     "grpc_rdb",
     "grpc_journal_file",
+    "journal",
+    "journal_redis",
 ]
 
 
