@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
+      fail-fast: false
       matrix:
         # python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
         python-version: [
@@ -102,7 +103,7 @@ jobs:
           serial_target="serial and not slow"
           target="not slow"
         fi
-        # pytest tests -m "not serial" -m "$target" -n 4
-        pytest tests -m "$serial_target" -n 1
+        pytest tests -m "$target" -n 8
+        # pytest tests -m "$serial_target" -n 1
       env:
         SQLALCHEMY_WARN_20: 1
