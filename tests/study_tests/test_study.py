@@ -186,9 +186,7 @@ def test_optimize_with_thread_pool_executor() -> None:
 @pytest.mark.parametrize("n_trials", (0, 1, 20, None))
 @pytest.mark.parametrize("n_jobs", (1, 2, -1))
 @pytest.mark.parametrize("storage_mode", STORAGE_MODES)
-def test_optimize_parallel_timeout(
-    n_trials: int, n_jobs: int, storage_mode: str
-) -> None:
+def test_optimize_parallel_timeout(n_trials: int, n_jobs: int, storage_mode: str) -> None:
     sleep_sec = 0.1
     timeout_sec = 1.0
     f = Func(sleep_sec=sleep_sec)
@@ -233,9 +231,7 @@ def test_optimize_with_catch(storage_mode: str) -> None:
         assert all(trial.state == TrialState.FAIL for trial in study.trials)
 
 
-@pytest.mark.parametrize(
-    "catch", [ValueError, (ValueError,), [ValueError], {ValueError}]
-)
+@pytest.mark.parametrize("catch", [ValueError, (ValueError,), [ValueError], {ValueError}])
 def test_optimize_with_catch_valid_type(catch: Any) -> None:
     study = create_study()
     study.optimize(fail_objective, n_trials=20, catch=catch)
@@ -257,9 +253,7 @@ def test_optimize_with_reseeding(n_jobs: int, storage_mode: str) -> None:
     with StorageSupplier(storage_mode) as storage:
         study = create_study(storage=storage)
         sampler = study.sampler
-        with patch.object(
-            sampler, "reseed_rng", wraps=sampler.reseed_rng
-        ) as mock_object:
+        with patch.object(sampler, "reseed_rng", wraps=sampler.reseed_rng) as mock_object:
             study.optimize(f, n_trials=1, n_jobs=2)
             assert mock_object.call_count == 1
 
@@ -372,9 +366,7 @@ def test_create_study(storage_mode: str) -> None:
         create_study(study_name=study.study_name, storage=storage, load_if_exists=True)
 
         with pytest.raises(DuplicatedStudyError):
-            create_study(
-                study_name=study.study_name, storage=storage, load_if_exists=False
-            )
+            create_study(study_name=study.study_name, storage=storage, load_if_exists=False)
 
 
 @pytest.mark.parametrize("storage_mode", STORAGE_MODES)
@@ -433,9 +425,7 @@ def test_load_study_default_sampler() -> None:
 
     # Multi-objective
     study_name = str(uuid.uuid4())
-    create_study(
-        storage=storage, study_name=study_name, directions=["minimize", "maximize"]
-    )
+    create_study(storage=storage, study_name=study_name, directions=["minimize", "maximize"])
     loaded_study = load_study(study_name=study_name, storage=storage)
     assert isinstance(loaded_study.sampler, optuna.samplers.NSGAIISampler)
 
@@ -462,9 +452,7 @@ def test_copy_study(from_storage_mode: str, to_storage_mode: str) -> None:
     with StorageSupplier(from_storage_mode) as from_storage, StorageSupplier(
         to_storage_mode
     ) as to_storage:
-        from_study = create_study(
-            storage=from_storage, directions=["maximize", "minimize"]
-        )
+        from_study = create_study(storage=from_storage, directions=["maximize", "minimize"])
         from_study._storage.set_study_system_attr(from_study._study_id, "foo", "bar")
         from_study.set_user_attr("baz", "qux")
         from_study.optimize(
@@ -482,12 +470,8 @@ def test_copy_study(from_storage_mode: str, to_storage_mode: str) -> None:
 
         assert to_study.study_name == from_study.study_name
         assert to_study.directions == from_study.directions
-        to_study_system_attrs = to_study._storage.get_study_system_attrs(
-            to_study._study_id
-        )
-        from_study_system_attrs = from_study._storage.get_study_system_attrs(
-            from_study._study_id
-        )
+        to_study_system_attrs = to_study._storage.get_study_system_attrs(to_study._study_id)
+        from_study_system_attrs = from_study._storage.get_study_system_attrs(from_study._study_id)
         assert to_study_system_attrs == from_study_system_attrs
         assert to_study.user_attrs == from_study.user_attrs
         assert len(to_study.trials) == len(from_study.trials)
@@ -818,9 +802,7 @@ def test_enqueue_trial_skip_existing_allows_unfixed(
     "param",
     ["foo", 1, 1.1, 1e17, 1e-17, float("inf"), float("-inf"), float("nan"), None],
 )
-def test_enqueue_trial_skip_existing_handles_common_types(
-    storage_mode: str, param: Any
-) -> None:
+def test_enqueue_trial_skip_existing_handles_common_types(storage_mode: str, param: Any) -> None:
     with StorageSupplier(storage_mode) as storage:
         study = create_study(storage=storage)
         study.enqueue_trial({"x": param})
@@ -847,9 +829,7 @@ def test_optimize_without_gc(collect_mock: Mock) -> None:
 
 
 @pytest.mark.parametrize("n_jobs", [1, 2])
-def test_optimize_with_progbar(
-    n_jobs: int, capsys: _pytest.capture.CaptureFixture
-) -> None:
+def test_optimize_with_progbar(n_jobs: int, capsys: _pytest.capture.CaptureFixture) -> None:
     study = create_study()
     study.optimize(lambda _: 1.0, n_trials=10, n_jobs=n_jobs, show_progress_bar=True)
     _, err = capsys.readouterr()
@@ -864,9 +844,7 @@ def test_optimize_with_progbar(
 
 
 @pytest.mark.parametrize("n_jobs", [1, 2])
-def test_optimize_without_progbar(
-    n_jobs: int, capsys: _pytest.capture.CaptureFixture
-) -> None:
+def test_optimize_without_progbar(n_jobs: int, capsys: _pytest.capture.CaptureFixture) -> None:
     study = create_study()
     study.optimize(lambda _: 1.0, n_trials=10, n_jobs=n_jobs)
     _, err = capsys.readouterr()
@@ -947,9 +925,7 @@ def test_optimize_progbar_n_trials_prioritized(
     n_jobs: int, capsys: _pytest.capture.CaptureFixture
 ) -> None:
     study = create_study()
-    study.optimize(
-        lambda _: 1.0, n_trials=10, n_jobs=n_jobs, timeout=10.0, show_progress_bar=True
-    )
+    study.optimize(lambda _: 1.0, n_trials=10, n_jobs=n_jobs, timeout=10.0, show_progress_bar=True)
     _, err = capsys.readouterr()
 
     assert "Best trial: 0" in err
@@ -1055,9 +1031,7 @@ def test_callbacks(n_jobs: int) -> None:
     states = []
     callbacks = [with_lock(lambda study, trial: states.append(trial.state))]
     with pytest.raises(ZeroDivisionError):
-        study.optimize(
-            lambda t: 1 / 0, callbacks=callbacks, n_trials=10, n_jobs=n_jobs, catch=()
-        )
+        study.optimize(lambda t: 1 / 0, callbacks=callbacks, n_trials=10, n_jobs=n_jobs, catch=())
     assert states == []
 
 
@@ -1134,9 +1108,7 @@ def test_get_trials_state_option(storage_mode: str) -> None:
         assert len(trials) == 0
 
         other_states = [
-            s
-            for s in list(TrialState)
-            if s != TrialState.COMPLETE and s != TrialState.PRUNED
+            s for s in list(TrialState) if s != TrialState.COMPLETE and s != TrialState.PRUNED
         ]
         for s in other_states:
             trials = study.get_trials(states=(s,))
@@ -1173,23 +1145,17 @@ def test_log_completed_trial_skip_storage_access() -> None:
 
     storage = study._storage
 
-    with patch.object(
-        storage, "get_best_trial", wraps=storage.get_best_trial
-    ) as mock_object:
+    with patch.object(storage, "get_best_trial", wraps=storage.get_best_trial) as mock_object:
         study._log_completed_trial(frozen_trial)
         assert mock_object.call_count == 1
 
     logging.set_verbosity(logging.WARNING)
-    with patch.object(
-        storage, "get_best_trial", wraps=storage.get_best_trial
-    ) as mock_object:
+    with patch.object(storage, "get_best_trial", wraps=storage.get_best_trial) as mock_object:
         study._log_completed_trial(frozen_trial)
         assert mock_object.call_count == 0
 
     logging.set_verbosity(logging.DEBUG)
-    with patch.object(
-        storage, "get_best_trial", wraps=storage.get_best_trial
-    ) as mock_object:
+    with patch.object(storage, "get_best_trial", wraps=storage.get_best_trial) as mock_object:
         study._log_completed_trial(frozen_trial)
         assert mock_object.call_count == 1
 
@@ -1239,9 +1205,7 @@ def test_optimize_with_multi_objectives(n_objectives: int) -> None:
         assert len(trial.values) == n_objectives
 
 
-@pytest.mark.parametrize(
-    "direction", [StudyDirection.MINIMIZE, StudyDirection.MAXIMIZE]
-)
+@pytest.mark.parametrize("direction", [StudyDirection.MINIMIZE, StudyDirection.MAXIMIZE])
 def test_best_trial_constrained_optimization(direction: StudyDirection) -> None:
     study = create_study(direction=direction)
     storage = study._storage
@@ -1314,9 +1278,7 @@ def test_wrong_n_objectives() -> None:
     study = create_study(directions=directions)
 
     def objective(trial: Trial) -> list[float]:
-        return [
-            trial.suggest_float("v{}".format(i), 0, 5) for i in range(n_objectives + 1)
-        ]
+        return [trial.suggest_float("v{}".format(i), 0, 5) for i in range(n_objectives + 1)]
 
     study.optimize(objective, n_trials=10)
 

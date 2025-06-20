@@ -90,14 +90,18 @@ class StorageSupplier:
             )
             return optuna.storages.JournalStorage(journal_redis_storage)
         elif self.storage_specifier == "grpc_journal_file":
-            self.tempfile = self.extra_args.get("file", NamedTemporaryFilePool(prefix="grpc_journal_file").tempfile())
+            self.tempfile = self.extra_args.get(
+                "file", NamedTemporaryFilePool(prefix="grpc_journal_file").tempfile()
+            )
             assert self.tempfile is not None
             storage = optuna.storages.JournalStorage(
                 optuna.storages.journal.JournalFileBackend(self.tempfile.name)
             )
             return self._create_proxy(storage)
         elif "journal" in self.storage_specifier:
-            self.tempfile = self.extra_args.get("file", NamedTemporaryFilePool(prefix="journal").tempfile())
+            self.tempfile = self.extra_args.get(
+                "file", NamedTemporaryFilePool(prefix="journal").tempfile()
+            )
             assert self.tempfile is not None
             file_storage = JournalFileBackend(self.tempfile.name)
             return optuna.storages.JournalStorage(file_storage)
