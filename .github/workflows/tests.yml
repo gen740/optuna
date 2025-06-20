@@ -22,19 +22,11 @@ jobs:
       fail-fast: false
       matrix:
         # python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
-        python-version: [
-          '3.12', '3.12', '3.12', '3.12', '3.12', '3.12', '3.12', '3.12', '3.12', '3.12',
-          '3.12', '3.12', '3.12', '3.12', '3.12', '3.12', '3.12', '3.12', '3.12', '3.12'
+        worker-num: [
+          1, 1, 1, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 6
         ]
         test-trigger-type:
           - ${{ (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && 'Scheduled' || '' }}
-        exclude:
-          - test-trigger-type: ""
-            python-version: "3.9"
-          - test-trigger-type: ""
-            python-version: "3.10"
-          - test-trigger-type: ""
-            python-version: "3.11"
 
     services:
       redis:
@@ -49,10 +41,10 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Setup Python${{ matrix.python-version }}
+    - name: Setup Python3.12
       uses: actions/setup-python@v5
       with:
-        python-version: ${{ matrix.python-version }}
+        python-version: 3.12
 
     - name: Setup cache
       uses: actions/cache@v3
@@ -60,9 +52,9 @@ jobs:
         cache-name: test
       with:
         path: ~/.cache/pip
-        key: ${{ runner.os }}-${{ matrix.python-version }}-${{ env.cache-name }}-${{ hashFiles('**/pyproject.toml') }}-v1
+        key: ${{ runner.os }}-3.12-${{ env.cache-name }}-${{ hashFiles('**/pyproject.toml') }}-v1
         restore-keys: |
-          ${{ runner.os }}-${{ matrix.python-version }}-${{ env.cache-name }}-${{ hashFiles('**/pyproject.toml') }}
+          ${{ runner.os }}-3.12-${{ env.cache-name }}-${{ hashFiles('**/pyproject.toml') }}
 
 
     - name: Setup pip
@@ -80,10 +72,10 @@ jobs:
         pip install --progress-bar off .[test] --extra-index-url https://download.pytorch.org/whl/cpu
         pip install --progress-bar off .[optional] --extra-index-url https://download.pytorch.org/whl/cpu
 
-        # TODO(gen740): Remove this after pytorch supports Python 3.13
-        if [ "${{ matrix.python-version }}" = "3.13" ] ; then
-          pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cpu
-        fi
+        # # TODO(gen740): Remove this after pytorch supports Python 3.13
+        # if [ "${{ matrix.python-version }}" = "3.13" ] ; then
+        #   pip install --pre torch --index-url https://download.pytorch.org/whl/nightly/cpu
+        # fi
 
     - name: Output installed packages
       run: |
@@ -93,17 +85,14 @@ jobs:
         pip install pipdeptree
         pipdeptree
 
-    - name: Tests
+    - name: Tests with ${{ matrix.worker-num }} worker
       run: |
         if [ "${{ github.event_name }}" = "schedule" ] || \
            [ "${{ github.event_name }}" = "workflow_dispatch" ] ; then
-          serial_target="serial"
           target=""
         else
-          serial_target="serial and not slow"
           target="not slow"
         fi
-        pytest tests -m "$target" -n 8
-        # pytest tests -m "$serial_target" -n 1
+        pytest tests -m "$target" -n ${{ matrix.worker-num }}
       env:
         SQLALCHEMY_WARN_20: 1
