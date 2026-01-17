@@ -6,6 +6,7 @@ from contextlib import contextmanager
 import os
 import socket
 import sys
+from tempfile import NamedTemporaryFile
 import threading
 from types import TracebackType
 from typing import Any
@@ -19,7 +20,6 @@ import optuna
 from optuna.storages import BaseStorage
 from optuna.storages import GrpcStorageProxy
 from optuna.storages.journal import JournalFileBackend
-from optuna.testing.tempfile_pool import NamedTemporaryFilePool
 
 
 if TYPE_CHECKING:
@@ -103,7 +103,7 @@ class StorageSupplier(AbstractContextManager):
                 raise ValueError("InMemoryStorage does not accept any arguments!")
             self.storage = optuna.storages.InMemoryStorage()
         elif "sqlite" in self.storage_specifier:
-            self.tempfile = NamedTemporaryFilePool().tempfile()
+            self.tempfile = NamedTemporaryFile()
             url = "sqlite:///{}".format(self.tempfile.name)
             rdb_storage = optuna.storages.RDBStorage(
                 url,
@@ -124,7 +124,7 @@ class StorageSupplier(AbstractContextManager):
             )
             self.storage = optuna.storages.JournalStorage(journal_redis_storage)
         elif self.storage_specifier == "grpc_journal_file":
-            self.tempfile = self.extra_args.get("file", NamedTemporaryFilePool().tempfile())
+            self.tempfile = self.extra_args.get("file", NamedTemporaryFile())
             assert self.tempfile is not None
             storage = optuna.storages.JournalStorage(
                 optuna.storages.journal.JournalFileBackend(self.tempfile.name)
@@ -133,12 +133,12 @@ class StorageSupplier(AbstractContextManager):
                 storage, thread_pool=self.extra_args.get("thread_pool")
             )
         elif "journal" in self.storage_specifier:
-            self.tempfile = self.extra_args.get("file", NamedTemporaryFilePool().tempfile())
+            self.tempfile = self.extra_args.get("file", NamedTemporaryFile())
             assert self.tempfile is not None
             file_storage = JournalFileBackend(self.tempfile.name)
             self.storage = optuna.storages.JournalStorage(file_storage)
         elif self.storage_specifier == "grpc_rdb":
-            self.tempfile = NamedTemporaryFilePool().tempfile()
+            self.tempfile = NamedTemporaryFile()
             url = "sqlite:///{}".format(self.tempfile.name)
             self.backend_storage = optuna.storages.RDBStorage(url)
             self.storage = self._create_proxy(self.backend_storage)

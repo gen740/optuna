@@ -5,6 +5,7 @@ from concurrent.futures import ProcessPoolExecutor
 from concurrent.futures import ThreadPoolExecutor
 import pathlib
 import pickle
+from tempfile import NamedTemporaryFile
 from types import TracebackType
 from typing import Any
 from typing import IO
@@ -25,7 +26,6 @@ from optuna.storages.journal._base import BaseJournalSnapshot
 from optuna.storages.journal._file import BaseJournalFileLock
 from optuna.storages.journal._storage import JournalStorageReplayResult
 from optuna.testing.storages import StorageSupplier
-from optuna.testing.tempfile_pool import NamedTemporaryFilePool
 
 
 LOG_STORAGE_WITH_PARAMETER = [
@@ -48,7 +48,7 @@ class JournalLogStorageSupplier:
 
     def __enter__(self) -> optuna.storages.journal.BaseJournalBackend:
         if self.storage_type.startswith("file"):
-            self.tempfile = NamedTemporaryFilePool().tempfile()
+            self.tempfile = NamedTemporaryFile()
             lock: BaseJournalFileLock
             if self.storage_type == "file_with_open_lock":
                 lock = optuna.storages.journal.JournalFileOpenLock(
@@ -122,7 +122,7 @@ def pop_waiting_trial(file_path: str, study_name: str) -> int | None:
 
 
 def test_pop_waiting_trial_multiprocess_safe() -> None:
-    with NamedTemporaryFilePool() as file:
+    with NamedTemporaryFile() as file:
         file_storage = optuna.storages.journal.JournalFileBackend(file.name)
         storage = optuna.storages.JournalStorage(file_storage)
         study = optuna.create_study(storage=storage)
@@ -218,7 +218,7 @@ def test_snapshot_given(storage_mode: str, capsys: _pytest.capture.CaptureFixtur
 
 
 def test_if_future_warning_occurs() -> None:
-    with NamedTemporaryFilePool() as file:
+    with NamedTemporaryFile() as file:
         with pytest.warns(FutureWarning):
             optuna.storages.JournalFileStorage(file.name)
 

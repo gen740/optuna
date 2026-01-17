@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
+from tempfile import NamedTemporaryFile
 from typing import TYPE_CHECKING
 from unittest.mock import patch
 
@@ -10,7 +11,6 @@ import optuna
 from optuna.storages._cached_storage import _CachedStorage
 from optuna.storages._rdb.storage import RDBStorage
 from optuna.study import StudyDirection
-from optuna.testing.tempfile_pool import NamedTemporaryFilePool
 from optuna.trial import TrialState
 
 
@@ -164,7 +164,7 @@ def test_delete_study() -> None:
 
 def test_unfinished_trial_ids() -> None:
     # This test reproduces the bug fixed in https://github.com/optuna/optuna/pull/6310
-    with NamedTemporaryFilePool() as tempfile:
+    with NamedTemporaryFile() as tempfile:
         storage_url = f"sqlite:///{tempfile.name}"
         study_name = "test-unfinished-trial-ids"
 

@@ -13,6 +13,8 @@ from unittest.mock import Mock
 from unittest.mock import patch
 import warnings
 
+from optuna.testing.storages import NamedTemporaryFile
+
 import pytest
 import sqlalchemy.exc as sqlalchemy_exc
 from sqlalchemy.exc import IntegrityError
@@ -30,7 +32,6 @@ from optuna.storages._rdb.models import SCHEMA_VERSION
 from optuna.storages._rdb.models import VersionInfoModel
 from optuna.storages._rdb.storage import _create_scoped_session
 from optuna.study import StudyDirection
-from optuna.testing.tempfile_pool import NamedTemporaryFilePool
 from optuna.trial import FrozenTrial
 from optuna.trial import TrialState
 
@@ -83,7 +84,7 @@ def test_init() -> None:
 
 
 def test_init_url_template() -> None:
-    with NamedTemporaryFilePool(suffix="{SCHEMA_VERSION}") as tf:
+    with NamedTemporaryFile(suffix="{SCHEMA_VERSION}") as tf:
         with create_test_storage("sqlite:///" + tf.name) as storage:
             assert storage.engine.url.database is not None
             assert storage.engine.url.database.endswith(str(SCHEMA_VERSION))
@@ -92,15 +93,15 @@ def test_init_url_template() -> None:
 def test_init_url_that_contains_percent_character() -> None:
     # Alembic's ini file regards '%' as the special character for variable expansion.
     # We checks `RDBStorage` does not raise an error even if a storage url contains the character.
-    with NamedTemporaryFilePool(suffix="%") as tf:
+    with NamedTemporaryFile(suffix="%") as tf:
         with create_test_storage("sqlite:///" + tf.name):
             pass
 
-    with NamedTemporaryFilePool(suffix="%foo") as tf:
+    with NamedTemporaryFile(suffix="%foo") as tf:
         with create_test_storage("sqlite:///" + tf.name):
             pass
 
-    with NamedTemporaryFilePool(suffix="%foo%%bar") as tf:
+    with NamedTemporaryFile(suffix="%foo%%bar") as tf:
         with create_test_storage("sqlite:///" + tf.name):
             pass
 
