@@ -103,7 +103,8 @@ class StorageSupplier(AbstractContextManager):
                 raise ValueError("InMemoryStorage does not accept any arguments!")
             self.storage = optuna.storages.InMemoryStorage()
         elif "sqlite" in self.storage_specifier:
-            self.tempfile = NamedTemporaryFile()
+            self.tempfile = NamedTemporaryFile(delete=False)
+            self.tempfile.close()
             url = "sqlite:///{}".format(self.tempfile.name)
             rdb_storage = optuna.storages.RDBStorage(
                 url,
@@ -124,7 +125,8 @@ class StorageSupplier(AbstractContextManager):
             )
             self.storage = optuna.storages.JournalStorage(journal_redis_storage)
         elif self.storage_specifier == "grpc_journal_file":
-            self.tempfile = self.extra_args.get("file", NamedTemporaryFile())
+            self.tempfile = self.extra_args.get("file", NamedTemporaryFile(delete=False))
+            self.tempfile.close()
             assert self.tempfile is not None
             storage = optuna.storages.JournalStorage(
                 optuna.storages.journal.JournalFileBackend(self.tempfile.name)
@@ -133,12 +135,14 @@ class StorageSupplier(AbstractContextManager):
                 storage, thread_pool=self.extra_args.get("thread_pool")
             )
         elif "journal" in self.storage_specifier:
-            self.tempfile = self.extra_args.get("file", NamedTemporaryFile())
+            self.tempfile = self.extra_args.get("file", NamedTemporaryFile(delete=False))
+            self.tempfile.close()
             assert self.tempfile is not None
             file_storage = JournalFileBackend(self.tempfile.name)
             self.storage = optuna.storages.JournalStorage(file_storage)
         elif self.storage_specifier == "grpc_rdb":
-            self.tempfile = NamedTemporaryFile()
+            self.tempfile = NamedTemporaryFile(delete=False)
+            self.tempfile.close()
             url = "sqlite:///{}".format(self.tempfile.name)
             self.backend_storage = optuna.storages.RDBStorage(url)
             self.storage = self._create_proxy(self.backend_storage)
@@ -182,6 +186,10 @@ class StorageSupplier(AbstractContextManager):
 
         if self.tempfile:
             self.tempfile.close()
+            try:
+                os.unlink(self.tempfile.name)
+            except FileNotFoundError:
+                pass
 
         if self.proxy:
             self.proxy.close()
