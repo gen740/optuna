@@ -29,7 +29,7 @@ from optuna.storages import RDBStorage
 from optuna.storages.journal import JournalFileBackend
 from optuna.storages.journal import JournalRedisBackend
 from optuna.study import StudyDirection
-from optuna.testing.storages import NamedTemporaryFile, StorageSupplier
+from optuna.testing.storages import StorageSupplier
 from optuna.trial import Trial
 from optuna.trial import TrialState
 
@@ -118,9 +118,11 @@ def _get_output(command: list[str], output_format: str) -> Any:
 
 
 def test_create_study_command() -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
+        storage_url = file_name
 
         # Create study.
         command = ["optuna", "create-study", "--storage", storage_url]
@@ -136,9 +138,11 @@ def test_create_study_command() -> None:
 
 
 def test_create_study_command_with_study_name() -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
+        storage_url = file_name
         study_name = "test_study"
 
         # Create study with name.
@@ -161,9 +165,11 @@ def test_create_study_command_without_storage_url() -> None:
 
 
 def test_create_study_command_with_storage_env() -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
+        storage_url = file_name
 
         # Create study.
         command = ["optuna", "create-study"]
@@ -180,9 +186,11 @@ def test_create_study_command_with_storage_env() -> None:
 
 
 def test_create_study_command_with_direction() -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
+        storage_url = file_name
 
         command = ["optuna", "create-study", "--storage", storage_url, "--direction", "minimize"]
         study_name = str(subprocess.check_output(command).decode().strip())
@@ -202,10 +210,12 @@ def test_create_study_command_with_direction() -> None:
 
 
 def test_create_study_command_with_multiple_directions() -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
-        command = [
+        storage_url = file_name
+
             "optuna",
             "create-study",
             "--storage",
@@ -254,10 +264,12 @@ def test_create_study_command_with_multiple_directions() -> None:
 
 
 def test_delete_study_command() -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
-        study_name = "delete-study-test"
+        storage_url = file_name
+
 
         # Create study.
         command = ["optuna", "create-study", "--storage", storage_url, "--study-name", study_name]
@@ -279,9 +291,11 @@ def test_delete_study_command_without_storage_url() -> None:
 
 
 def test_study_set_user_attr_command() -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
+        storage_url = file_name
 
         # Create study.
         study_name = storage.get_study_name_from_id(
@@ -311,9 +325,11 @@ def test_study_set_user_attr_command() -> None:
 
 @output_formats
 def test_study_names_command(output_format: str | None) -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
+        storage_url = file_name
 
         expected_study_names = ["study-names-test1", "study-names-test2"]
         expected_column_name = "name"
@@ -372,9 +388,11 @@ def test_study_names_command_without_storage_url() -> None:
 
 @output_formats
 def test_studies_command(output_format: str | None) -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
+        storage_url = file_name
 
         # First study.
         study_1 = optuna.create_study(storage=storage)
@@ -439,9 +457,11 @@ def test_studies_command(output_format: str | None) -> None:
 
 @output_formats
 def test_studies_command_flatten(output_format: str | None) -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
+        storage_url = file_name
 
         # First study.
         study_1 = optuna.create_study(storage=storage)
@@ -530,9 +550,11 @@ def test_studies_command_flatten(output_format: str | None) -> None:
 @pytest.mark.parametrize("objective", (objective_func, objective_func_branched_search_space))
 @output_formats
 def test_trials_command(objective: Callable[[Trial], float], output_format: str | None) -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
+        storage_url = file_name
         study_name = "test_study"
         n_trials = 10
 
@@ -610,9 +632,12 @@ def test_trials_command(objective: Callable[[Trial], float], output_format: str 
 def test_trials_command_flatten(
     objective: Callable[[Trial], float], output_format: str | None
 ) -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
+        storage_url = file_name
+
         study_name = "test_study"
         n_trials = 10
 
@@ -686,9 +711,11 @@ def test_trials_command_flatten(
 def test_best_trial_command(
     objective: Callable[[Trial], float], output_format: str | None
 ) -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
+        storage_url = file_name
         study_name = "test_study"
         n_trials = 10
 
@@ -767,9 +794,11 @@ def test_best_trial_command(
 def test_best_trial_command_flatten(
     objective: Callable[[Trial], float], output_format: str | None
 ) -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
+        storage_url = file_name
         study_name = "test_study"
         n_trials = 10
 
@@ -840,9 +869,11 @@ def test_best_trial_command_flatten(
 
 @output_formats
 def test_best_trials_command(output_format: str | None) -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
+        storage_url = file_name
         study_name = "test_study"
         n_trials = 10
 
@@ -925,9 +956,11 @@ def test_best_trials_command(output_format: str | None) -> None:
 
 @output_formats
 def test_best_trials_command_flatten(output_format: str | None) -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
+        storage_url = file_name
         study_name = "test_study"
         n_trials = 10
 
@@ -1003,9 +1036,11 @@ def test_best_trials_command_flatten(output_format: str | None) -> None:
 
 
 def test_create_study_command_with_skip_if_exists() -> None:
-    with NamedTemporaryFile() as fp, StorageSupplier("journal", file=fp) as storage:
+    fd, file_name = tempfile.mkstemp()
+    os.close(fd)
+    with StorageSupplier("journal", file_name=file_name) as storage:
         assert isinstance(storage, JournalStorage)
-        storage_url = fp.name
+        storage_url = file_name
         study_name = "test_study"
 
         # Create study with name.

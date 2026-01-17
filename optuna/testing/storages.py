@@ -6,7 +6,7 @@ from contextlib import contextmanager
 import os
 import socket
 import sys
-from tempfile import NamedTemporaryFile
+import tempfile
 import threading
 from types import TracebackType
 from typing import Any
@@ -82,12 +82,12 @@ class StorageSupplier(AbstractContextManager):
     def __init__(self, storage_specifier: str, **kwargs: Any) -> None:
         self.storage_specifier = storage_specifier
         self.extra_args = kwargs
-        self.tempfile: IO[Any] | None = None
         self.server: grpc.Server | None = None
         self.thread: threading.Thread | None = None
         self.proxy: GrpcStorageProxy | None = None
         self.storage: BaseStorage | None = None
         self.backend_storage: BaseStorage | None = None
+        self.tempfile_name: str | None = None
 
     def __enter__(
         self,
@@ -98,14 +98,18 @@ class StorageSupplier(AbstractContextManager):
         | optuna.storages.JournalStorage
         | optuna.storages.GrpcStorageProxy
     ):
+        if "file_name" in self.extra_args:
+            self.tempfile_name = self.extra_args["file_name"]
+        else:
+            fd, self.tempfile_name = tempfile.mkstemp()
+            os.close(fd)
+
         if self.storage_specifier == "inmemory":
             if len(self.extra_args) > 0:
                 raise ValueError("InMemoryStorage does not accept any arguments!")
             self.storage = optuna.storages.InMemoryStorage()
         elif "sqlite" in self.storage_specifier:
-            self.tempfile = NamedTemporaryFile(delete=False)
-            self.tempfile.close()
-            url = "sqlite:///{}".format(self.tempfile.name)
+            url = "sqlite:///{}".format(self.tempfile_name)
             rdb_storage = optuna.storages.RDBStorage(
                 url,
                 engine_kwargs={"connect_args": {"timeout": SQLITE3_TIMEOUT}},
@@ -125,25 +129,17 @@ class StorageSupplier(AbstractContextManager):
             )
             self.storage = optuna.storages.JournalStorage(journal_redis_storage)
         elif self.storage_specifier == "grpc_journal_file":
-            self.tempfile = self.extra_args.get("file", NamedTemporaryFile(delete=False))
-            self.tempfile.close()
-            assert self.tempfile is not None
             storage = optuna.storages.JournalStorage(
-                optuna.storages.journal.JournalFileBackend(self.tempfile.name)
+                optuna.storages.journal.JournalFileBackend(self.tempfile_name)
             )
             self.storage = self._create_proxy(
                 storage, thread_pool=self.extra_args.get("thread_pool")
             )
         elif "journal" in self.storage_specifier:
-            self.tempfile = self.extra_args.get("file", NamedTemporaryFile(delete=False))
-            self.tempfile.close()
-            assert self.tempfile is not None
-            file_storage = JournalFileBackend(self.tempfile.name)
+            file_storage = JournalFileBackend(self.tempfile_name)
             self.storage = optuna.storages.JournalStorage(file_storage)
         elif self.storage_specifier == "grpc_rdb":
-            self.tempfile = NamedTemporaryFile(delete=False)
-            self.tempfile.close()
-            url = "sqlite:///{}".format(self.tempfile.name)
+            url = "sqlite:///{}".format(self.tempfile_name)
             self.backend_storage = optuna.storages.RDBStorage(url)
             self.storage = self._create_proxy(self.backend_storage)
         elif self.storage_specifier == "grpc_proxy":
@@ -184,12 +180,9 @@ class StorageSupplier(AbstractContextManager):
             assert isinstance(self.backend_storage, optuna.storages.RDBStorage)
             self.backend_storage.engine.dispose()
 
-        if self.tempfile:
-            self.tempfile.close()
-            try:
-                os.unlink(self.tempfile.name)
-            except FileNotFoundError:
-                pass
+        if self.tempfile_name is not None:
+            os.unlink(self.tempfile_name)
+            self.tempfile_name = None
 
         if self.proxy:
             self.proxy.close()
