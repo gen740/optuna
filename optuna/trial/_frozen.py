@@ -167,7 +167,10 @@ class FrozenTrial(BaseTrial):
             self._values = [value]
         elif values is not None:
             self._values = list(values)
-        self._datetime_start = datetime_start
+
+        # In rdb storage, the datetime values are stored in UTC timezone.
+        # Therefore, we convert them to local timezone and remove the timezone information.
+        self.datetime_start = datetime_start
         self.datetime_complete = datetime_complete
         self._params = params
         self._user_attrs = user_attrs
@@ -419,7 +422,23 @@ class FrozenTrial(BaseTrial):
 
     @datetime_start.setter
     def datetime_start(self, value: datetime.datetime | None) -> None:
-        self._datetime_start = value
+        # In rdb storage, the datetime values are stored in UTC timezone.
+        # Therefore, we convert them to local timezone and remove the timezone information.
+        self._datetime_start = (
+            value.astimezone().replace(tzinfo=None) if value is not None else None
+        )
+
+    @property
+    def datetime_complete(self) -> datetime.datetime | None:
+        return self._datetime_complete
+
+    @datetime_complete.setter
+    def datetime_complete(self, value: datetime.datetime | None) -> None:
+        # In rdb storage, the datetime values are stored in UTC timezone.
+        # Therefore, we convert them to local timezone and remove the timezone information.
+        self._datetime_complete = (
+            value.astimezone().replace(tzinfo=None) if value is not None else None
+        )
 
     @property
     def params(self) -> dict[str, Any]:
