@@ -16,7 +16,11 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+from pathlib import Path
+import sys
 import warnings
+
+sys.path.insert(0, str(Path(__file__).resolve().parent / "_ext"))
 
 import plotly.io as pio
 from sklearn.exceptions import ConvergenceWarning
@@ -59,7 +63,9 @@ extensions = [
     "sphinx.ext.githubpages",
     "sphinx.ext.graphviz",
     "sphinx_copybutton",
-    "sphinx_gallery.gen_gallery"
+    "sphinx_design",
+    "tagged_plot",
+    "sphinx_gallery.gen_gallery",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -78,8 +84,9 @@ master_doc = "index"
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path .
 exclude_patterns = [
-    "reference/visualization/generated/index.rst",
-    "reference/visualization/matplotlib/generated/index.rst",
+    "_ext/**",
+    "reference/visualization/generated/**",
+    "reference/visualization/matplotlib/generated/**",
 ]
 
 # The name of the Pygments (syntax highlighting) style to use.
@@ -204,14 +211,10 @@ sphinx_gallery_conf = {
     "examples_dirs": [
         "../../tutorial/10_key_features",
         "../../tutorial/20_recipes",
-        "../visualization_examples",
-        "../visualization_matplotlib_examples",
     ],
     "gallery_dirs": [
         "tutorial/10_key_features",
         "tutorial/20_recipes",
-        "reference/visualization/generated",
-        "reference/visualization/matplotlib/generated",
     ],
     "compress_images": ("images", "thumbnails"),
     "thumbnail_size": (400, 280),
